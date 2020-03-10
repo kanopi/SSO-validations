@@ -1,0 +1,7 @@
+ucsf_samlauth:
+  version: 1.x
+  css:
+    layout:
+      css/ucsf_samlauth.css: {}
+    theme:
+      css/ucsf_samlauth.css: {}

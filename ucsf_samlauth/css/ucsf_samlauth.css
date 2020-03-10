@@ -1,0 +1,10 @@
+.simplesamlphp-auth-login-link {
+  color: #052049;
+  padding: 11px 5px;
+  text-decoration: none;
+  background-color: #F0F0F0;
+  border-bottom: 1px solid #ccc;
+  font-size: 1.125rem;
+  line-height: 1.5rem;
+  font-family: "Helvetica Neue","HelveticaNeueRoman","HelveticaNeue-Roman","Helvetica Neue Roman","Helvetica","Arial",sans-serif;
+}

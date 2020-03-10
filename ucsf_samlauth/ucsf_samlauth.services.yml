@@ -1,0 +1,5 @@
+services:
+  ucsf_samlauth.route_subscriber:
+    class: Drupal\ucsf_samlauth\EventSubscriber\RouteSubscriber
+    tags:
+      - { name: 'event_subscriber' }

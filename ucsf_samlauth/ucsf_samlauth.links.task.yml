@@ -1,0 +1,4 @@
+ucsf_samlauth.settings:
+  title: 'Attribute Validation'
+  route_name: ucsf_samlauth.settings
+  parent_id: simplesamlphp_auth.admin_settings_tab

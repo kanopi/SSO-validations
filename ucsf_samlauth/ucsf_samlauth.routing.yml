@@ -1,0 +1,7 @@
+ucsf_samlauth.settings:
+  path: '/admin/config/people/simplesamlphp_auth/attribute'
+  defaults:
+    _form: '\Drupal\ucsf_samlauth\Form\SettingsValidateAttribute'
+    _title: 'Attribute Validation'
+  requirements:
+    _permission: 'administer site configuration'

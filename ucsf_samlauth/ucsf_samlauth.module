@@ -1,0 +1,120 @@
+<?php 
+
+
+/**
+ * Hook to alter the assigned authname of a pre-existing Drupal user.
+ *
+ * Allows other modules to change the authname that is being stored when
+ * a pre-existing Drupal user account gets SAML-enabled.
+ * This is done by clicking the checkbox "Enable this user to leverage SAML
+ * authentication" upon user registration or the user edit form (given enough
+ * permissions).
+ *
+ * For example, this allows you to pre-register Drupal accounts and store the
+ * entered email address (rather than the default username) as the authname.
+ * The SAML user with that email address as authname will then be able to login
+ * as that Drupal user.
+ *
+ * @param string $authname
+ *   The current authname that will be assigned this user (default: username).
+ * @param \Drupal\user\UserInterface $account
+ *   The pre-existing Drupal user to be SAML-enabled.
+ */
+function ucsf_samlauth_simplesamphp_auth_account_authname_alter(&$authname, \Drupal\user\UserInterface $account) {
+  $authname = $account->mail;
+}
+
+/**
+ * Hook to map pre-existing Drupal user based on SAML attributes.
+ *
+ * Allows other modules to decide if there is an existing Drupal user that
+ * should be linked with the SAML-authenticated user authname, based on the
+ * supplied SAML atttributes.
+ *
+ * E.g. When a SAML-authenticated user logs in, try to find an existing Drupal
+ * user which has the same email address as specified in the SAML attributes.
+ * In that case the existing Drupal user and SAML-authenticated user will be
+ * linked, and that Drupal user will be loaded and logged in upon successful
+ * SAML authentication.
+ *
+ * @param array $attributes
+ *   The SimpleSAMLphp attributes for this user.
+ *
+ * @return \Drupal\user\UserInterface|bool
+ *   The pre-existing Drupal user to be SAML-enabled, or FALSE if none found.
+ */
+function ucsf_samlauth_simplesamlphp_auth_existing_user($attributes) {
+  $saml_mail = $attributes['mail'];
+  $existing_users = \Drupal::service('entity.manager')->getStorage('user')->loadByProperties(['mail' => $saml_mail]);
+  if ($existing_users) {
+    $existing_user = is_array($existing_users) ? reset($existing_users) : FALSE;
+    if ($existing_user) {
+      return $existing_user;
+    }
+  }
+  return FALSE;
+}
+
+
+/**
+ * Hook to specify if a SAML-authenticated user is allowed to login.
+ *
+ * Allows other modules to decide whether user with the given set of
+ * attributes is allowed to log in via SSO or not.
+ *
+ * Each implementation should take care of displaying errors, there is no
+ * message implementation at hook invocation. Implementations should return
+ * a boolean indicating the success of the access check. Access will be denied
+ * if any implementations return FALSE.
+ *
+ * @param array $attributes
+ *   The SimpleSAMLphp attributes for this user.
+ *
+ * @return bool
+ *   TRUE if SAML user is allowed to log in, FALSE if not.
+ */
+function ucsf_samlauth_simplesamlphp_auth_allow_login($attributes) {
+  \Drupal::config('simplesamlphp_auth.settings')->get('logout_goto_url');
+  $config = \Drupal::config('ucsf_samlauth.settings');  
+  
+  if ($samlauth_attribute_label = $config->get('attribute_name')){
+    if($samlauth_attribute_values = $config->get('attribute_values')){
+      $samlauth_attribute_values = explode('|', $samlauth_attribute_values);
+    }
+    if (isset($attributes[$samlauth_attribute_label])){
+      if(!is_array($attributes[$samlauth_attribute_label])){
+        $attributes[$samlauth_attribute_label][] = $attributes[$samlauth_attribute_label];
+      }
+      if(!empty(array_intersect($attributes[$samlauth_attribute_label], $samlauth_attribute_values))){ 
+        return TRUE;
+      }
+    }
+    \Drupal::messenger()->addMessage(t('SSO Validation Failed:').$samlauth_attribute_label, 'error');
+    return FALSE;
+  } 
+  return TRUE;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function ucsf_samlauth_theme() {
+  $theme = [];
+  return $theme;
+}
+
+/**
+ * Implements hook_page_attachments().
+ */
+function ucsf_samlauth_page_attachments(array &$attachments) {
+  $attachments['#attached']['library'][] = 'ucsf_samlauth/ucsf_samlauth';
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function ucsf_samlauth_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+  $form['#attached']['library'][] = 'ucsf_samlauth/ucsf_samlauth';
+}
+
+

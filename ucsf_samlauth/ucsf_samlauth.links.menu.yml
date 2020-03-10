@@ -1,0 +1,5 @@
+ucsf_samlauth.settings:
+  title: 'Attribute Validation'
+  description: 'SimpleSaml attribute validation'
+  route_name: ucsf_samlauth.settings
+  parent: simplesamlphp_auth.admin_settings
